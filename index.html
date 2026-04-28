@@ -3,42 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Custom Timer 20-20-2</title>
+<title>Timer Pro</title>
 
 <style>
 body{
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
+  margin:0;
+  height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
-  margin:0;
+  background:#0f172a;
+  font-family:Arial;
+  color:white;
 }
 
 .container{
-  background:#1e293b;
-  padding:30px;
-  border-radius:15px;
   text-align:center;
-  width:300px;
 }
 
-h1{ margin-bottom:10px; }
+.circle{
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:conic-gradient(#3b82f6 0deg, #1e293b 0deg);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:auto;
+  transition:0.3s;
+}
+
+.inner{
+  width:180px;
+  height:180px;
+  background:#0f172a;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
 
 #timer{
-  font-size:48px;
-  margin:20px 0;
-}
-
-input{
-  width:70px;
-  padding:5px;
-  margin:5px;
-  border-radius:8px;
-  border:none;
-  text-align:center;
+  font-size:32px;
 }
 
 button{
@@ -49,8 +56,12 @@ button{
   cursor:pointer;
 }
 
-.controls{
-  margin-top:10px;
+input{
+  width:60px;
+  text-align:center;
+  border-radius:6px;
+  border:none;
+  margin:3px;
 }
 </style>
 </head>
@@ -58,27 +69,21 @@ button{
 <body>
 
 <div class="container">
-  <h1>Timer</h1>
-
-  <div>
-    <label>Kerja (menit)</label><br>
-    <input id="work" type="number" value="20">
-  </div>
-
-  <div>
-    <label>Istirahat (detik)</label><br>
-    <input id="rest" type="number" value="20">
-  </div>
-
-  <div>
-    <label>Break (menit)</label><br>
-    <input id="break" type="number" value="2">
-  </div>
-
   <h2 id="phase">Siap</h2>
-  <div id="timer">00:00</div>
 
-  <div class="controls">
+  <div class="circle" id="circle">
+    <div class="inner">
+      <div id="timer">00:00</div>
+    </div>
+  </div>
+
+  <div style="margin-top:10px;">
+    <input id="work" type="number" value="20"> m
+    <input id="rest" type="number" value="20"> s
+    <input id="break" type="number" value="2"> m
+  </div>
+
+  <div>
     <button onclick="start()">Start</button>
     <button onclick="pause()">Pause</button>
     <button onclick="reset()">Reset</button>
@@ -89,14 +94,15 @@ button{
 let phases = [];
 let current = 0;
 let timeLeft = 0;
+let totalTime = 0;
 let interval = null;
 let running = false;
 
 function getInput(){
   return [
-    { name:"Kerja", time: document.getElementById("work").value * 60 },
-    { name:"Istirahat Mata", time: document.getElementById("rest").value },
-    { name:"Break", time: document.getElementById("break").value * 60 }
+    { name:"Kerja", time: work.value * 60 },
+    { name:"Istirahat", time: rest.value },
+    { name:"Break", time: break.value * 60 }
   ];
 }
 
@@ -106,6 +112,7 @@ function start(){
       phases = getInput();
       current = 0;
       timeLeft = phases[0].time;
+      totalTime = timeLeft;
     }
     running = true;
     interval = setInterval(update,1000);
@@ -123,20 +130,26 @@ function reset(){
   phases = [];
   current = 0;
   timeLeft = 0;
-  document.getElementById("timer").innerText = "00:00";
-  document.getElementById("phase").innerText = "Siap";
+  document.getElementById("timer").innerText="00:00";
+  document.getElementById("phase").innerText="Siap";
+  document.getElementById("circle").style.background =
+    "conic-gradient(#3b82f6 0deg, #1e293b 0deg)";
 }
 
 function update(){
   let phase = phases[current];
-
   document.getElementById("phase").innerText = phase.name;
 
-  let m = Math.floor(timeLeft / 60);
-  let s = timeLeft % 60;
+  let m = Math.floor(timeLeft/60);
+  let s = timeLeft%60;
 
   document.getElementById("timer").innerText =
     `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+
+  // 🔵 progress circle
+  let progress = ((totalTime - timeLeft) / totalTime) * 360;
+  document.getElementById("circle").style.background =
+    `conic-gradient(#3b82f6 ${progress}deg, #1e293b ${progress}deg)`;
 
   timeLeft--;
 
@@ -144,10 +157,11 @@ function update(){
     current++;
     if(current >= phases.length){
       reset();
-      document.getElementById("phase").innerText = "Selesai!";
+      document.getElementById("phase").innerText="Selesai!";
       return;
     }
     timeLeft = phases[current].time;
+    totalTime = timeLeft;
   }
 }
 </script>
