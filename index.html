@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timer 20-20-2</title>
+
+<style>
+body{
+  font-family: Arial;
+  text-align: center;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container{
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 15px;
+}
+
+h1{
+  margin-bottom: 20px;
+}
+
+#timer{
+  font-size: 48px;
+  margin: 20px 0;
+}
+
+button{
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+  <h1>Timer 20-20-2</h1>
+  <h2 id="phase">Siap</h2>
+  <div id="timer">00:00</div>
+  <button onclick="startTimer()">Start</button>
+</div>
+
+<script>
+let phases = [
+  { name: "Kerja", time: 20 * 60 },
+  { name: "Istirahat Mata", time: 20 },
+  { name: "Break", time: 2 * 60 }
+];
+
+let current = 0;
+let interval;
+
+function startTimer(){
+  current = 0;
+  runPhase();
+}
+
+function runPhase(){
+  let phase = phases[current];
+  let time = phase.time;
+
+  document.getElementById("phase").innerText = phase.name;
+
+  interval = setInterval(() => {
+    let minutes = Math.floor(time / 60);
+    let seconds = time % 60;
+
+    document.getElementById("timer").innerText =
+      `${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`;
+
+    time--;
+
+    if(time < 0){
+      clearInterval(interval);
+      current++;
+
+      if(current < phases.length){
+        runPhase();
+      } else {
+        document.getElementById("phase").innerText = "Selesai!";
+      }
+    }
+
+  }, 1000);
+}
+</script>
+
+</body>
+</html>
