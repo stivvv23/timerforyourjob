@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timer Pro</title>
+<title>Focus Timer</title>
 
 <style>
 body{
@@ -12,57 +12,78 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  background:#0f172a;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
   font-family:Arial;
   color:white;
 }
 
 .container{
+  background:#1e293b;
+  padding:30px;
+  border-radius:20px;
   text-align:center;
+  width:320px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+
+h2{
+  margin-bottom:10px;
+  opacity:0.8;
 }
 
 .circle{
   width:220px;
   height:220px;
   border-radius:50%;
-  background:conic-gradient(#3b82f6 0deg, #1e293b 0deg);
+  margin:20px auto;
   display:flex;
   justify-content:center;
   align-items:center;
-  margin:auto;
+  background:conic-gradient(#3b82f6 0deg,#0f172a 0deg);
   transition:0.3s;
 }
 
 .inner{
   width:180px;
   height:180px;
-  background:#0f172a;
   border-radius:50%;
+  background:#1e293b;
   display:flex;
+  flex-direction:column;
   justify-content:center;
   align-items:center;
-  flex-direction:column;
 }
 
 #timer{
-  font-size:32px;
+  font-size:36px;
+  font-weight:bold;
 }
 
-button{
+.inputs{
+  margin-top:10px;
+}
+
+.inputs input{
+  width:60px;
+  padding:5px;
+  border-radius:8px;
+  border:none;
+  text-align:center;
+  margin:5px;
+}
+
+.buttons button{
   margin:5px;
   padding:10px 15px;
   border:none;
   border-radius:10px;
   cursor:pointer;
+  font-weight:bold;
 }
 
-input{
-  width:60px;
-  text-align:center;
-  border-radius:6px;
-  border:none;
-  margin:3px;
-}
+.start{ background:#3b82f6; color:white; }
+.pause{ background:#f59e0b; color:white; }
+.reset{ background:#ef4444; color:white; }
 </style>
 </head>
 
@@ -77,16 +98,16 @@ input{
     </div>
   </div>
 
-  <div style="margin-top:10px;">
+  <div class="inputs">
     <input id="work" type="number" value="20"> Work
     <input id="rest" type="number" value="20"> Rest
-    <input id="break" type="number" value="2"> Break
+    <input id="break Time" type="number" value="2"> Break Time
   </div>
 
-  <div>
-    <button onclick="start()">Start</button>
-    <button onclick="pause()">Pause</button>
-    <button onclick="reset()">Reset</button>
+  <div class="buttons">
+    <button class="start" onclick="start()">Start</button>
+    <button class="pause" onclick="pause()">Pause</button>
+    <button class="reset" onclick="reset()">Reset</button>
   </div>
 </div>
 
@@ -98,11 +119,30 @@ let totalTime = 0;
 let interval = null;
 let running = false;
 
+function playSound(){
+  let ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let osc = ctx.createOscillator();
+  let gain = ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.frequency.value = 700;
+  osc.start();
+
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1);
+
+  setTimeout(()=>{
+    osc.stop();
+    ctx.close();
+  },1000);
+}
+
 function getInput(){
   return [
-    { name:"Kerja", time: work.value * 60 },
+    { name:"Fokus", time: work.value * 60 },
     { name:"Istirahat", time: rest.value },
-    { name:"Break", time: break.value * 60 }
+    { name:"Break", time: breakTime.value * 60 }
   ];
 }
 
@@ -133,7 +173,7 @@ function reset(){
   document.getElementById("timer").innerText="00:00";
   document.getElementById("phase").innerText="Siap";
   document.getElementById("circle").style.background =
-    "conic-gradient(#3b82f6 0deg, #1e293b 0deg)";
+    "conic-gradient(#3b82f6 0deg,#0f172a 0deg)";
 }
 
 function update(){
@@ -146,20 +186,22 @@ function update(){
   document.getElementById("timer").innerText =
     `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
 
-  // 🔵 progress circle
   let progress = ((totalTime - timeLeft) / totalTime) * 360;
   document.getElementById("circle").style.background =
-    `conic-gradient(#3b82f6 ${progress}deg, #1e293b ${progress}deg)`;
+    `conic-gradient(#3b82f6 ${progress}deg,#0f172a ${progress}deg)`;
 
   timeLeft--;
 
   if(timeLeft < 0){
+    playSound();
     current++;
+
     if(current >= phases.length){
       reset();
       document.getElementById("phase").innerText="Selesai!";
       return;
     }
+
     timeLeft = phases[current].time;
     totalTime = timeLeft;
   }
